@@ -8,4 +8,4 @@ hella wip, site under construction
 
 ## usage
 
-visit the website brah
+visit the website [here](https://kevinistic.github.io/cdidrepo/) brah
