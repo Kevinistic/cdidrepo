@@ -11,6 +11,13 @@ top:0;
 background:#000;
 padding:10px;
 z-index:10;
+border-bottom:2px solid #333;
+}
+
+#pageInfo{
+margin-top:8px;
+font-size:14px;
+color:#aaa;
 }
 
 input{
@@ -21,4 +28,50 @@ font-size:16px;
 .car{
 padding:8px;
 border-bottom:1px solid #333;
+}
+
+#pagination{
+display:flex;
+justify-content:center;
+align-items:center;
+gap:8px;
+padding:20px;
+flex-wrap:wrap;
+position:sticky;
+bottom:0;
+background:#000;
+border-top:2px solid #333;
+z-index:10;
+}
+
+#pagination button{
+padding:8px 12px;
+background:#222;
+color:#eee;
+border:1px solid #444;
+border-radius:4px;
+cursor:pointer;
+font-size:14px;
+transition:all 0.2s;
+}
+
+#pagination button:hover:not(:disabled){
+background:#333;
+border-color:#666;
+}
+
+#pagination button:disabled{
+opacity:0.3;
+cursor:not-allowed;
+}
+
+#pagination button.active{
+background:#0066cc;
+border-color:#0066cc;
+font-weight:bold;
+}
+
+#pagination .ellipsis{
+color:#666;
+padding:0 4px;
 }

@@ -2,20 +2,36 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Car Database</title>
+<title>CDID Car Database</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
-<h1>Car Database</h1>
+<h1>CDID Car Database (unofficial)</h1>
 <input id="search" placeholder="Search cars...">
 <label>
-<input type="checkbox" id="hideUnob"> Hide Unobtainable
+Limiteds:
+<select id="limitedFilter">
+<option value="show-all" selected>Show All</option>
+<option value="show-limiteds">Show Limiteds</option>
+<option value="hide-limiteds">Hide Limiteds</option>
+</select>
+</label>
+<label>
+Sort by:
+<select id="sortBy">
+<option value="name-asc" selected>Name (A-Z)</option>
+<option value="name-desc">Name (Z-A)</option>
+<option value="price-asc">Price (Low-High)</option>
+<option value="price-desc">Price (High-Low)</option>
+</select>
 </label>
 </header>
 
+<div id="pageInfo"></div>
 <div id="results"></div>
+<div id="pagination"></div>
 
 <script src="app.js"></script>
 </body>

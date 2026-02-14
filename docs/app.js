@@ -1,9 +1,14 @@
 const results = document.getElementById("results");
 const searchBox = document.getElementById("search");
-const hideUnob = document.getElementById("hideUnob");
+const limitedFilter = document.getElementById("limitedFilter");
+const sortBy = document.getElementById("sortBy");
+const pagination = document.getElementById("pagination");
+const pageInfo = document.getElementById("pageInfo");
 
 let cars = [];
 let filtered = [];
+let currentPage = 1;
+const CARS_PER_PAGE = 50;
 
 fetch("database/cars_combined.json")
 .then(r=>r.json())
@@ -16,36 +21,78 @@ fetch("database/cars_combined.json")
         // id: key,
         name: displayName,
         ...val,
-        search:(displayName+" "+JSON.stringify(val)).toLowerCase()
+        search:displayName.toLowerCase()
     };
     });
 
     filtered = cars;
+    applySort();
     render();
 });
 
 function filter(){
     const term = searchBox.value.toLowerCase();
-    const hide = hideUnob.checked;
+    const limitedOption = limitedFilter.value;
 
     filtered = cars.filter(c=>{
-        if(hide && c.Unobtainable) return false;
+        // Filter by limited status
+        const isLimited = "Unobtainable" in c;
+        if(limitedOption === "show-limiteds" && !isLimited) return false;
+        if(limitedOption === "hide-limiteds" && isLimited) return false;
+        
+        // Filter by search term
         return c.search.includes(term);
     });
 
+    currentPage = 1; // Reset to first page on filter
+    applySort();
     render();
 }
 
+function applySort(){
+    const sort = sortBy.value;
+    
+    if(sort === "none") return;
+    
+    filtered.sort((a, b) => {
+        if(sort === "name-asc"){
+            return a.name.localeCompare(b.name);
+        }
+        if(sort === "name-desc"){
+            return b.name.localeCompare(a.name);
+        }
+        if(sort === "price-asc"){
+            return (a.Cost || 0) - (b.Cost || 0);
+        }
+        if(sort === "price-desc"){
+            return (b.Cost || 0) - (a.Cost || 0);
+        }
+        return 0;
+    });
+}
+
 searchBox.addEventListener("input",filter);
-hideUnob.addEventListener("change",filter);
+limitedFilter.addEventListener("change",filter);
+sortBy.addEventListener("change",filter);
+
+function rgbToHex(r, g, b) {
+    return "#" + [r, g, b].map(x => {
+        const hex = x.toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+    }).join("");
+}
 
 function render(){
     results.innerHTML="";
 
-    const max = Math.min(filtered.length,200); // virtualization cap
+    const totalPages = Math.ceil(filtered.length / CARS_PER_PAGE);
+    const startIdx = (currentPage - 1) * CARS_PER_PAGE;
+    const endIdx = Math.min(startIdx + CARS_PER_PAGE, filtered.length);
+    const pageCars = filtered.slice(startIdx, endIdx);
 
-    for(let i=0;i<max;i++){
-        const car = filtered[i];
+    // Render cars for current page
+    for(let i=0; i<pageCars.length; i++){
+        const car = pageCars[i];
 
         const div=document.createElement("div");
         div.className="car";
@@ -55,13 +102,132 @@ function render(){
         div.appendChild(title);
 
         for(const key in car){
-            if(key==="name"||key==="search")continue;
+            if(key==="name"||key==="search"||key==="CarName"||key==="CarImage"||key==="Rims"||key==="Unobtainable")continue;
 
             const p=document.createElement("div");
-            p.textContent=key+": "+JSON.stringify(car[key]);
+
+            if(key==="Cost"){
+                // separate digit groups with dots
+                const costStr = car[key].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                p.textContent = "Price: Rp. " + costStr;
+                div.appendChild(p);
+                continue;
+            }
+            
+            // Special handling for Color attribute
+            if(key === "Color" && car[key] && car[key].rgb && Array.isArray(car[key].rgb) && car[key].rgb.length === 3){
+                const [r, g, b] = car[key].rgb;
+                const hex = rgbToHex(Math.round(r), Math.round(g), Math.round(b));
+                p.innerHTML = `Color: ${hex} <span style="display:inline-block;width:20px;height:20px;background:${hex};border:1px solid #666;vertical-align:middle;margin-left:5px;border-radius:3px;"></span>`;
+            } else {
+                p.textContent = key + ": " + JSON.stringify(car[key]);
+            }
+            
             div.appendChild(p);
         }
 
+        // Display Limited status
+        const limitedP = document.createElement("div");
+        const limitedStatus = "Unobtainable" in car ? "Limited" : "No";
+        limitedP.textContent = "Limited: " + limitedStatus;
+        div.appendChild(limitedP);
+
         results.appendChild(div);
     }
+
+    renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+    pagination.innerHTML = "";
+    
+    if (totalPages <= 1) {
+        pageInfo.textContent = `Showing ${filtered.length} cars`;
+        return;
+    }
+
+    const startIdx = (currentPage - 1) * CARS_PER_PAGE + 1;
+    const endIdx = Math.min(currentPage * CARS_PER_PAGE, filtered.length);
+    pageInfo.textContent = `Showing ${startIdx}-${endIdx} of ${filtered.length} cars`;
+
+    // Previous button
+    const prevBtn = document.createElement("button");
+    prevBtn.textContent = "← Prev";
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => {
+        currentPage--;
+        render();
+        window.scrollTo(0, 0);
+    };
+    pagination.appendChild(prevBtn);
+
+    // Page numbers
+    const maxButtons = 7;
+    let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+    
+    if (endPage - startPage < maxButtons - 1) {
+        startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+
+    if (startPage > 1) {
+        const firstBtn = document.createElement("button");
+        firstBtn.textContent = "1";
+        firstBtn.onclick = () => {
+            currentPage = 1;
+            render();
+            window.scrollTo(0, 0);
+        };
+        pagination.appendChild(firstBtn);
+        
+        if (startPage > 2) {
+            const ellipsis = document.createElement("span");
+            ellipsis.textContent = "...";
+            ellipsis.className = "ellipsis";
+            pagination.appendChild(ellipsis);
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.className = i === currentPage ? "active" : "";
+        btn.onclick = () => {
+            currentPage = i;
+            render();
+            window.scrollTo(0, 0);
+        };
+        pagination.appendChild(btn);
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement("span");
+            ellipsis.textContent = "...";
+            ellipsis.className = "ellipsis";
+            pagination.appendChild(ellipsis);
+        }
+        
+        const lastBtn = document.createElement("button");
+        lastBtn.textContent = totalPages;
+        lastBtn.onclick = () => {
+            currentPage = totalPages;
+            render();
+            window.scrollTo(0, 0);
+        };
+        pagination.appendChild(lastBtn);
+    }
+
+    // Next button
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "Next →";
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => {
+        currentPage++;
+        render();
+        window.scrollTo(0, 0);
+    };
+    pagination.appendChild(nextBtn);
+
+    
 }
