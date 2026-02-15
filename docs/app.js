@@ -97,12 +97,62 @@ function render(){
         const div=document.createElement("div");
         div.className="car";
 
+        const content = document.createElement("div");
+        content.className = "car-content";
+
+        const textContent = document.createElement("div");
+        textContent.className = "car-text";
+
+        // Create image container
+        const imageContainer = document.createElement("div");
+        imageContainer.className = "car-images";
+        
+        // Car image
+        if (car.CarImageUrl) {
+            const carImageWrapper = document.createElement("div");
+            carImageWrapper.className = "image-wrapper";
+            const carImg = document.createElement("img");
+            carImg.className = "car-thumbnail";
+            carImg.alt = "Car";
+            carImg.loading = "lazy";
+            carImg.src = car.CarImageUrl;
+            carImg.onerror = function() {
+                this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect fill='%23222' width='150' height='150'/%3E%3Ctext fill='%23888' x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='12'%3ENo Image%3C/text%3E%3C/svg%3E";
+            };
+            const carLabel = document.createElement("div");
+            carLabel.className = "image-label";
+            carLabel.textContent = "Car";
+            carImageWrapper.appendChild(carImg);
+            carImageWrapper.appendChild(carLabel);
+            imageContainer.appendChild(carImageWrapper);
+        }
+        
+        // Rims image
+        if (car.RimsUrl) {
+            const rimsWrapper = document.createElement("div");
+            rimsWrapper.className = "image-wrapper";
+            const rimsImg = document.createElement("img");
+            rimsImg.className = "car-thumbnail";
+            rimsImg.alt = "Rims";
+            rimsImg.loading = "lazy";
+            rimsImg.src = car.RimsUrl;
+            rimsImg.onerror = function() {
+                this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect fill='%23222' width='150' height='150'/%3E%3Ctext fill='%23888' x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='12'%3ENo Image%3C/text%3E%3C/svg%3E";
+            };
+            const rimsLabel = document.createElement("div");
+            rimsLabel.className = "image-label";
+            rimsLabel.textContent = "Rims";
+            rimsWrapper.appendChild(rimsImg);
+            rimsWrapper.appendChild(rimsLabel);
+            imageContainer.appendChild(rimsWrapper);
+        }
+        
         const title=document.createElement("b");
         title.textContent=car.name;
-        div.appendChild(title);
+        textContent.appendChild(title);
 
         for(const key in car){
-            if(key==="name"||key==="search"||key==="CarName"||key==="CarImage"||key==="Rims"||key==="Unobtainable")continue;
+            if(key==="name"||key==="search"||key==="CarName"||key==="CarImage"||key==="CarImageUrl"||key==="RimsUrl"||key==="Unobtainable")continue;
 
             const p=document.createElement("div");
 
@@ -110,7 +160,7 @@ function render(){
                 // separate digit groups with dots
                 const costStr = car[key].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                 p.textContent = "Price: Rp. " + costStr;
-                div.appendChild(p);
+                textContent.appendChild(p);
                 continue;
             }
             
@@ -118,19 +168,42 @@ function render(){
             if(key === "Color" && car[key] && car[key].rgb && Array.isArray(car[key].rgb) && car[key].rgb.length === 3){
                 const [r, g, b] = car[key].rgb;
                 const hex = rgbToHex(Math.round(r), Math.round(g), Math.round(b));
-                p.innerHTML = `Color: ${hex} <span style="display:inline-block;width:20px;height:20px;background:${hex};border:1px solid #666;vertical-align:middle;margin-left:5px;border-radius:3px;"></span>`;
+                p.innerHTML = `Color: ${hex} <span style="display:inline-block;width:15px;height:15px;background:${hex};border:1px solid #666;vertical-align:middle;margin-left:5px;border-radius:3px;"></span>`;
             } else {
                 p.textContent = key + ": " + JSON.stringify(car[key]);
             }
             
-            div.appendChild(p);
-        }
+            textContent.appendChild(p);
 
+            // handling for rims code, replace link with pure code
+            if(key === "Rims"){
+                const rimsStr = car[key].toString().split("/").pop(); // get last part of the URL
+                const equalsIndex = rimsStr.indexOf("=");
+                if(equalsIndex !== -1) {
+                    const afterEquals = rimsStr.substring(equalsIndex + 1);
+                    if(afterEquals.length > 0) {
+                        p.textContent = "Rims Code: " + afterEquals;
+                    }
+                } else {
+                    p.textContent = "Rims Code: " + rimsStr;
+                }
+                textContent.appendChild(p);
+            }
+        }
+        
         // Display Limited status
         const limitedP = document.createElement("div");
         const limitedStatus = "Unobtainable" in car ? "Limited" : "No";
         limitedP.textContent = "Limited: " + limitedStatus;
-        div.appendChild(limitedP);
+        textContent.appendChild(limitedP);
+
+        content.appendChild(textContent);
+
+        if (imageContainer.children.length > 0) {
+            content.appendChild(imageContainer);
+        }
+
+        div.appendChild(content);
 
         results.appendChild(div);
     }
