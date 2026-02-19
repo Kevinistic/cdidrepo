@@ -39547,5 +39547,23 @@
     "Dealership": "Komersial",
     "RimsUrl": "https://tr.rbxcdn.com/180DAY-b4ad371a921cc80c72259e0405e9ba09/250/250/Image/Png/noFilter",
     "CarImageUrl": "https://tr.rbxcdn.com/180DAY-ec28a3f09f565e210f3e60006fab2e20/250/250/Image/Png/noFilter"
+  },
+  "2026evolny": {
+    "CarImage": "rbxassetid://101252719527953",
+    "CarName": "2026 Mestibis Lancer Evo VI Lunar New Year Special",
+    "Cost": 2727020271,
+    "Color": {
+      "rgb": [
+        218,
+        170,
+        75
+      ],
+      "__type": "Color3"
+    },
+    "Rims": "rbxassetid://130091539734746",
+    "Dealership": "Bandung",
+    "Unobtainable": 2,
+    "CarImageUrl": "https://tr.rbxcdn.com/180DAY-bddc01f476396b87713f3c72508ab2f9/250/250/Image/Png/noFilter",
+    "RimsUrl": "https://tr.rbxcdn.com/180DAY-2e477b1f9ad79db8f4de582ad5d343a4/250/250/Image/Png/noFilter"
   }
 }
