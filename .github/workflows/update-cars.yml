@@ -1,0 +1,44 @@
+name: Update Cars Combined JSON
+
+on:
+  push:
+    paths:
+      - "*.rbxmx"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate car JSON files from RBXMX
+        run: python tojson.py
+
+      - name: Combine car JSON files
+        run: python combine_cars.py
+
+      - name: Fetch thumbnails and update combined JSON
+        run: python fetch_thumbnails.py
+
+      - name: Commit updated combined JSON
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/database/cars_combined.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "chore: update cars_combined.json from RBXMX"
+          git push
