@@ -3,7 +3,7 @@ name: Update Cars Combined JSON
 on:
   push:
     paths:
-      - "*.rbxmx"
+      - "snapshots/**/*.rbxmx"
   workflow_dispatch:
 
 permissions:
